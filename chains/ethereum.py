@@ -1,26 +1,33 @@
 import requests
-from datetime import datetime, timedelta
+import os
 
-USDT_ERC20 = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+ETH_API = os.environ.get("ETH_API")
 
-def get_erc20_usdt(address, api_key, hours=12):
-    since = datetime.utcnow() - timedelta(hours=hours)
-    url = "https://api.etherscan.io/api"
-    params = {
-        "module": "account",
-        "action": "tokentx",
-        "contractaddress": USDT_ERC20,
-        "address": address,
-        "sort": "desc",
-        "apikey": api_key
-    }
-    r = requests.get(url, params=params)
-    data = r.json().get("result", [])
-    txs = []
+def get_erc20_balance(wallet_address, contract_address):
+    if not ETH_API:
+        print("ETH_API не установлен")
+        return 0
 
-    for tx in data:
-        tx_time = datetime.utcfromtimestamp(int(tx["timeStamp"]))
-        if tx_time < since:
-            break
-        txs.append(int(tx["value"]) / 1_000_000)
-    return txs
+    url = (
+        f"https://api.etherscan.io/api"
+        f"?module=account"
+        f"&action=tokenbalance"
+        f"&contractaddress={contract_address}"
+        f"&address={wallet_address}"
+        f"&tag=latest"
+        f"&apikey={ETH_API}"
+    )
+
+    try:
+        response = requests.get(url).json()
+
+        if response.get("status") != "1":
+            print("Ошибка Etherscan:", response)
+            return 0
+
+        balance = int(response["result"]) / 10**18
+        return balance
+
+    except Exception as e:
+        print("ERC20 Error:", e)
+        return 0

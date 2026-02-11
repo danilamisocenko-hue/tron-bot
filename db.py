@@ -1,25 +1,21 @@
-import sqlite3
+import json
+import os
 
-conn = sqlite3.connect("wallets.db", check_same_thread=False)
-cursor = conn.cursor()
+WALLETS_FILE = "wallets.json"
 
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS wallets (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER,
-    address TEXT,
-    network TEXT
-)
-""")
-conn.commit()
+def load_wallets():
+    if not os.path.exists(WALLETS_FILE):
+        with open(WALLETS_FILE, "w") as f:
+            json.dump([], f)
+    with open(WALLETS_FILE, "r") as f:
+        return json.load(f)
 
-def add_wallet(user_id, address, network):
-    cursor.execute(
-        "INSERT INTO wallets (user_id, address, network) VALUES (?, ?, ?)",
-        (user_id, address, network)
-    )
-    conn.commit()
-
-def get_wallets():
-    cursor.execute("SELECT user_id, address, network FROM wallets")
-    return cursor.fetchall()
+def add_wallet(wallet):
+    wallets = load_wallets()
+    for w in wallets:
+        if w["network"] == wallet["network"] and w["address"] == wallet["address"]:
+            return False
+    wallets.append(wallet)
+    with open(WALLETS_FILE, "w") as f:
+        json.dump(wallets, f, indent=4)
+    return True

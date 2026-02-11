@@ -1,0 +1,10 @@
+[
+    {
+        "network": "TRC20",
+        "address": "TRXs87PCw2BpzUGy98wKXSc65RVCoEFszd"
+    },
+    {
+        "network": "ERC20",
+        "address": "0x786ab64e7e6f2ffe0c3404e207510676b1081990"
+    }
+]
